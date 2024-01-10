@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
-from .model import Base, Value, ValueType
+from .model import Base, Value, ValueType, Sensors, Location
 
 
 class Crud:
@@ -51,7 +51,7 @@ class Crud:
             session.commit()
             return db_type
 
-    def add_value(self, value_time: int, value_type: int, value_value: float) -> None:
+    def add_value(self, value_time: int, value_type: int, value_value: float, value_sensor: int) -> None:
         """Add a measurement point to the database.
 
         Args:
@@ -62,7 +62,7 @@ class Crud:
         with Session(self._engine) as session:
             stmt = select(ValueType).where(ValueType.id == value_type)
             db_type = self.add_or_update_value_type(value_type)
-            db_value = Value(time=value_time, value=value_value, value_type=db_type)
+            db_value = Value(time=value_time, value=value_value, value_sensor_id=value_sensor, value_type=db_type)
 
             session.add_all([db_type, db_value])
             try:
@@ -95,8 +95,7 @@ class Crud:
             return session.scalars(stmt).one()
 
     def get_values(
-        self, value_type_id: int = None, start: int = None, end: int = None
-    ) -> List[Value]:
+        self, value_type_id: int = None, start: int = None, end: int = None) -> List[Value]:
         """Get Values from database.
 
         The result can be filtered by the following paramater:
@@ -122,3 +121,47 @@ class Crud:
             logging.error(stmt)
 
             return session.scalars(stmt).all()
+
+    def add_sensor(self, sensor_id: int, name: str, sensor_location: int) -> None:      
+        with Session(self._engine) as session:
+            stmt = select(Sensors).where(Sensors.id == sensor_id)
+            db_sensors = Sensors(id=sensor_id, s_name=name, sensor_location_id=sensor_location)
+
+            session.add(db_sensors)
+            try:
+                session.commit()
+            except IntegrityError:
+                logging.error("Integrity")
+                raise
+
+    def get_sensors(self) -> List[Sensors]:
+        with Session(self._engine) as session:
+            stmt = select(Sensors)
+            return session.scalars(stmt).all()
+
+    def get_sensor(self, id) -> Sensors:
+        with Session(self._engine) as session:
+            stmt = select(Sensors).where(Sensors.id == id)
+            return session.scalars(stmt).one()
+
+    def add_location(self, location_id: int, name: str) -> None:      
+        with Session(self._engine) as session:
+            stmt = select(Location).where(Location.id == location_id)
+            db_location = Location(id=location_id, location_name=name)
+
+            session.add(db_location)
+            try:
+                session.commit()
+            except IntegrityError:
+                logging.error("Integrity")
+                raise
+
+    def get_locations(self) -> List[Location]:
+        with Session(self._engine) as session:
+            stmt = select(Location)
+            return session.scalars(stmt).all()
+
+    def get_location(self, id) -> Location:
+        with Session(self._engine) as session:
+            stmt = select(Location).where(Location.id == id)
+            return session.scalars(stmt).one()

@@ -37,7 +37,7 @@ def read_type(id: int) -> ApiTypes.ValueType:
         id (int): primary key of the desired value type
 
     Raises:
-        HTTPException: Thrown if a value type with the given id cannot be accessed
+        HTTPException: Thrown it a value type with the given id cannot be accessed
 
     Returns:
         ApiTypes.ValueType: the desired value type 
@@ -49,9 +49,61 @@ def read_type(id: int) -> ApiTypes.ValueType:
         raise HTTPException(status_code=404, detail="Item not found") 
     return value_type 
 
+@app.get("/sensor/")
+def read_sensor(id: int) -> ApiTypes.Sensor:
+    global crud
+    try:
+        return crud.get_sensor(id)
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+@app.get("/sensors/")
+def read_sensors() -> List[ApiTypes.Sensor]:
+    global crud
+    try:
+        return crud.get_sensors()
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return sensors
+
+@app.put("/sensors/{id}/")
+def put_sensors(id: int, s_name: str, sensor_location_id: int) -> ApiTypes.Sensor:
+    global crud
+    try:
+        crud.add_sensor(id, s_name, sensor_location_id)
+        return read_sensor(id)
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+@app.get("/location/")
+def read_location(id: int) -> ApiTypes.Location:
+    global crud
+    try:
+        return crud.get_location(id)
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+@app.get("/locations/")
+def read_locations() -> List[ApiTypes.Location]:
+    global crud
+    try:
+        return crud.get_locations()
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return locations
+
+@app.put("/location/{id}/")
+def put_location(id: int, location_name: str) -> ApiTypes.Location:
+    global crud
+    try:
+        crud.add_location(id, location_name)
+        return read_location(id)
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, detail="Item not found")
+
 @app.put("/type/{id}/")
 def put_type(id, value_type: ApiTypes.ValueTypeNoID) -> ApiTypes.ValueType:
-    """PUT request to a special valuetype. This api call is used to change a value type object.
+    """PUT request to a specail valuetype. This api call is used to change a value type object.
 
     Args:
         id (int): primary key of the requested value type
@@ -102,10 +154,10 @@ async def startup_event() -> None:
     crud = Crud(engine)
     reader = Reader(crud)
     reader.start()
-    logger.debug("STARTUP: Sensor reader completed!")
+    logger.debug("STARTUP: Sensore reader completed!")
 
 @app.on_event("shutdown")
-async def shutdown_event():
+async def startup_event():
     """stop the character device reader
     """    
     global reader

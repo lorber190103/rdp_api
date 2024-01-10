@@ -10,9 +10,23 @@ class ValueType(ValueTypeNoID):
 class ValueNoID(BaseModel):
     value_type_id: int
     time: int
-    value: float 
+    value: float
+    value_sensor_id: int
 
 class Value(ValueNoID):
+    id: int
+
+class SensorNoID(BaseModel):
+    s_name: str
+    sensor_location_id: int
+
+class Sensor(SensorNoID):
+    id: int
+
+class LocationNoID(BaseModel):
+    location_name: str
+
+class Location(LocationNoID):
     id: int
 
 class ApiDescription(BaseModel):
